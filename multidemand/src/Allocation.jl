@@ -66,8 +66,8 @@ function initallocation(m::Model)
     # Use random demands, from a LogNormal distribution and constant across all
     # time.
     Adem = rand(Normal(5e4, 1e3), m.indices_counts[:regions]*m.indices_counts[:time]);
-    allocation[:waterdemandag] = 100*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
-    allocation[:waterdemanddom] = 10*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
+    allocation[:waterdemandag] = 10*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
+    allocation[:waterdemanddom] = 1*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
 
     #demand[:waterdemand] = repeat(rand(LogNormal(log(1000.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     costgroundwater = 0.12*ones(m.indices_counts[:regions],m.indices_counts[:time])#((1/100)*repeat(rand(Normal(12.5, 1.5), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
@@ -81,8 +81,38 @@ function initallocation(m::Model)
     allocation[:waterfromreservoirag] = repeat(rand(LogNormal(log(300.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:waterfromsupersourceag] = repeat(rand(LogNormal(log(500.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:waterfromgwdom] = repeat(rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromreservoirdom] = repeat(rand(LogNormal(log(300.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    allocation[:waterfromsupersourcedom] = repeat(rand(LogNormal(log(500.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromreservoirdom] = repeat(rand(LogNormal(log(100.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromsupersourcedom] = repeat(rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costgwlift] = 0.2/(43560*(0.305^4))
+    allocation[:depth] = 80*ones(m.indices_counts[:regions],m.indices_counts[:time])
+    allocation
+end
+function initallocationcontus(m::Model)
+    allocation = addcomponent(m, Allocation)
+    # Use random demands, from a LogNormal distribution and constant across all
+    # time.
+    #Adem = rand(Normal(5e4, 1e3), m.indices_counts[:regions]*m.indices_counts[:time]);
+    temp = readdlm("data/oneyearirrdemand.txt")
+    allocation[:waterdemandag] = temp[1:m.indices_counts[:regions],1:m.indices_counts[:time]];#10*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
+    temp = readdlm("data/oneyeardomdemand.txt")
+    allocation[:waterdemanddom] = temp[1:m.indices_counts[:regions],1:m.indices_counts[:time]];#1*reshape(Adem,m.indices_counts[:regions],m.indices_counts[:time]);
+
+    #demand[:waterdemand] = repeat(rand(LogNormal(log(1000.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    temp = readdlm("data/county_elevation.txt")
+    costgroundwater = repeat(0.2/(43560*(0.305^4))*(80+temp[:,1]), outer=[1, m.indices_counts[:time]]);
+    #((1/100)*repeat(rand(Normal(12.5, 1.5), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costfromgwdom] = costgroundwater#(1/100)*repeat(rand(Normal(12.5, 1.5), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costfromreservoirdom] = 0.35*ones(m.indices_counts[:regions],m.indices_counts[:time])#(1/100)*repeat(rand(Normal(55, 3), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costfromgwag] = costgroundwater
+    allocation[:costfromreservoirag] = 0.05*ones(m.indices_counts[:regions],m.indices_counts[:time])#(1/100)*repeat(rand(Uniform(2, 8), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:costfromsupersource] = 100.0;
+
+    allocation[:waterfromgwag] = repeat(rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromreservoirag] = repeat(rand(LogNormal(log(300.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromsupersourceag] = repeat(rand(LogNormal(log(500.0), log(100.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromgwdom] = repeat(rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromreservoirdom] = repeat(rand(LogNormal(log(100.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    allocation[:waterfromsupersourcedom] = repeat(rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
     allocation[:costgwlift] = 0.2/(43560*(0.305^4))
     allocation[:depth] = 80*ones(m.indices_counts[:regions],m.indices_counts[:time])
     allocation

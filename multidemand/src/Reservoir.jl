@@ -61,7 +61,7 @@ function initreservoir(m::Model)
     reservoir[:inflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
     reservoir[:outflows] = reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
     reservoir[:withdrawal] = repeat(0*rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
-    rcmax = rand(Normal(3e4,4e3), m.indices_counts[:reservoirs])
+    rcmax = rand(Normal(3e5,4e3), m.indices_counts[:reservoirs])
     reservoir[:storagecapacitymax] = rcmax;
     reservoir[:storagecapacitymin] = 0.1*rcmax;
     reservoir[:storage0] = 0.75*rcmax; #initial storate value: 3/4 max capacity
@@ -69,3 +69,20 @@ function initreservoir(m::Model)
     reservoir
 end
 
+
+function initreservoircontus(m::Model)
+    reservoir = addcomponent(m, Reservoir)
+    Ainf = rand(Normal(5e2, 7e1), m.indices_counts[:reservoirs]*m.indices_counts[:time]);
+    Aout = rand(Normal(5e2, 7e1), m.indices_counts[:regions]*m.indices_counts[:time]);
+    Mtemp = readdlm("data/oneyearrunoff.txt")
+    reservoir[:inflows] = Mtemp#reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    #Mtemp = readdlm("data/oneyearbaseflow.txt")
+    reservoir[:outflows] = Mtemp;#reshape(Ainf,m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir[:withdrawal] = repeat(0*rand(LogNormal(log(50.0), log(10.0)), m.indices_counts[:regions]),outer=[1, m.indices_counts[:time]]);
+    rcmax = rand(Normal(3e5,4e3), m.indices_counts[:reservoirs])
+    reservoir[:storagecapacitymax] = rcmax;
+    reservoir[:storagecapacitymin] = 0.0*rcmax;
+    reservoir[:storage0] = 0.75*rcmax; #initial storate value: 3/4 max capacity
+    reservoir[:evaporation] = 0.01*ones(m.indices_counts[:reservoirs],m.indices_counts[:time]);
+    reservoir
+end

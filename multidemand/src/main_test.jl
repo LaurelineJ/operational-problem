@@ -8,14 +8,14 @@ include("Reservoir.jl")
 println("Creating model...")
 m = Model()
 
-setindex(m, :time, collect(1:100))
-setindex(m, :regions, collect(1:5))
-setindex(m, :aquifers, collect(1:5))
-setindex(m, :reservoirs, collect(1:5))
-
+ncounty=5#3108
+setindex(m, :time, collect(1:2))
+setindex(m, :regions, collect(1:ncounty))
+setindex(m, :aquifers, collect(1:ncounty))
+setindex(m, :reservoirs, collect(1:ncounty))
 # Add all of the components
 allocation = initallocation(m);
-aquifer = initaquifer(m);
+aquifer = initaquiferfive(m);
 reservoir = initreservoir(m);
 #watercost = initwatercost(m);
 # Set links between components
@@ -47,7 +47,7 @@ m.components[:Allocation].Parameters.costfromreservoirag
 #m.components[:Watercost].Variables.costgw
 #m.components[:Watercost].Parameters.depth
 
-m.components[:Aquifer].Variables.meandepth
+#m.components[:Aquifer].Variables.meandepth
 m.components[:Aquifer].Variables.piezohead
 m.components[:Aquifer].Variables.lateralflows
 m.components[:Aquifer].Parameters.withdrawal
@@ -71,19 +71,19 @@ end
 
 function objective(m)
     # Cost is minimized
-    return -sum((m.components[:Allocation].Variables.cost).^2)
+    return -sum((m.components[:Allocation].Variables.cost))
 end
 
-vectormoduletooptimise=[:Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Reservoir]
-vectorparametertooptimise= [:waterfromreservoirag, :waterfromgwag, :waterfromsupersourceag, :waterfromreservoirdom, :waterfromgwdom, :waterfromsupersourcedom, :outflows]
-optprob = problem(m,vectormoduletooptimise,vectorparametertooptimise, [0., 0., 0., 0., 0., 0., 0.], [1e9,1e9,Inf,1e9,1e9,Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
+moduletooptimise=[:Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Allocation, :Reservoir]
+parametertooptimise= [:waterfromreservoirag, :waterfromgwag, :waterfromsupersourceag, :waterfromreservoirdom, :waterfromgwdom, :waterfromsupersourcedom, :outflows]
+optprob = problem(m,moduletooptimise,parametertooptimise, [0., 0., 0., 0., 0., 0., 0.], [1e9,1e9,Inf,1e9,1e9,Inf, Inf], objective, constraints=constraints, algorithm=:GUROBI_LINPROG);
 
 
 println("Solving...")
 @time sol = solution(optprob); ###### CANNOT COMPUTE THE BASELINE FOR GRADIENTS
 
 # re-run model with optimised parameters
-setparameters(m,vectormoduletooptimise,vectorparametertooptimise, sol)
+setparameters(m,moduletooptimise,parametertooptimise, sol)
 @time run(m)
 objective(m)
 
